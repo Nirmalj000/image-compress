@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Compressor</title>
+    <style>
+        /* CSS Styling */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .upload-section {
+            margin-bottom: 20px;
+        }
+
+        .preview-section {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        img {
+            max-width: 45%;
+            display: none;
+        }
+
+        .compression-controls {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image Compressor</h1>
+        <div class="upload-section">
+            <input type="file" id="upload" accept="image/*">
+            <label for="upload">Upload an Image</label>
+        </div>
+        <div class="preview-section">
+            <canvas id="canvas" style="display: none;"></canvas>
+            <img id="originalPreview" alt="Original Image">
+            <img id="compressedPreview" alt="Compressed Image">
+        </div>
+        <div class="compression-controls">
+            <label for="quality">Quality:</label>
+            <input type="range" id="quality" min="0" max="1" step="0.1" value="0.8">
+        </div>
+        <button id="download" style="display: none;">Download Compressed Image</button>
+    </div>
+
+    <script>
+        // JavaScript for image compression
+        document.getElementById("upload").addEventListener("change", handleImageUpload);
+        document.getElementById("quality").addEventListener("input", updateCompression);
+        document.getElementById("download").addEventListener("click", downloadImage);
+
+        let originalImage, compressedImage;
+
+        // Handle image upload
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    originalImage = new Image();
+                    originalImage.onload = () => {
+                        displayImage("originalPreview", originalImage.src);
+                        compressImage();
+                    };
+                    originalImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Display image in preview
+        function displayImage(id, src) {
+            const img = document.getElementById(id);
+            img.src = src;
+            img.style.display = "block";
+        }
+
+        // Compress the image using the canvas
+        function compressImage() {
+            const canvas = document.getElementById("canvas");
+            const quality = parseFloat(document.getElementById("quality").value);
+            
+            canvas.width = originalImage.width;
+            canvas.height = originalImage.height;
+            const ctx = canvas.getContext("2d");
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw image
+            ctx.drawImage(originalImage, 0, 0);
+
+            // Check original image format and set compression format
+            const format = originalImage.src.includes("image/png") ? "image/png" : "image/jpeg";
+            compressedImage = canvas.toDataURL(format, quality);
+
+            displayImage("compressedPreview", compressedImage);
+            document.getElementById("download").style.display = "inline-block";
+        }
+
+
+        // Update compression based on quality slider
+        function updateCompression() {
+            compressImage();
+        }
+
+        // Download the compressed image
+        function downloadImage() {
+            const link = document.createElement("a");
+            link.href = compressedImage;
+            link.download = "compressed_image.jpg";
+            link.click();
+        }
+    </script>
+</body>
+</html>
