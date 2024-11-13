@@ -5,134 +5,149 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Compressor</title>
     <style>
+        /* Updated Styling */
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f7fa;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
-            padding: 20px;
+            align-items: center;
+            height: 100vh;
             margin: 0;
+            background-color: #f4f7fa;
         }
 
         .container {
-            width: 100%;
-            max-width: 700px;
-            margin: 20px 0;
+            max-width: 500px;
+            width: 90%;
             background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
 
         h1 {
-            color: #007bff;
-            font-size: 28px;
+            color: #4A90E2;
             margin-bottom: 10px;
         }
 
-        .upload-section input {
-            font-size: 16px;
+        .upload-section {
+            margin: 20px 0;
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
             padding: 8px;
             width: 100%;
-            max-width: 100%;
-            border: 2px solid #007bff;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        .preview-section {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .preview-item {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .preview-item img {
-            max-width: 100px;
-            max-height: 100px;
+            border: 2px solid #4A90E2;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            color: #333;
+            background-color: #f4f7fa;
+            cursor: pointer;
         }
 
         .compression-controls {
-            margin-top: 20px;
+            margin: 20px 0;
         }
 
-        .compression-controls input {
+        .compression-controls label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        input[type="range"] {
             width: 100%;
+            cursor: pointer;
+            margin-top: 8px;
         }
 
         button {
-            padding: 10px 20px;
-            background-color: #007bff;
+            margin-top: 20px;
+            padding: 12px 20px;
+            background-color: #4A90E2;
             color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
             font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
             transition: background-color 0.3s;
         }
 
-        button:hover {
-            background-color: #0056b3;
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        button:hover:enabled {
+            background-color: #357ABD;
+        }
+
+        .bmc-container {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Image Compressor</h1>
+        <p>Upload multiple images and adjust the quality to compress them.</p>
+        
         <div class="upload-section">
-            <label for="upload">Upload Images</label>
             <input type="file" id="upload" accept="image/*" multiple>
         </div>
 
         <div class="compression-controls">
-            <label for="quality">Quality:</label>
-            <input type="range" id="quality" min="0" max="1" step="0.1" value="0.8">
+            <label for="quality">Quality (30% - 100%):</label>
+            <input type="range" id="quality" min="0.3" max="1" step="0.1" value="0.8">
         </div>
 
-        <button id="compressAndDownload" style="margin-top: 20px;">Compress and Download All</button>
+        <button id="compressAndDownload" disabled>Compress and Download All</button>
 
-        <div class="preview-section" id="preview-section"></div>
+        <!-- Buy Me a Coffee Button -->
+        <div class="bmc-container">
+            <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" 
+                data-name="bmc-button" 
+                data-slug="nirmaljain" 
+                data-color="#FFDD00" 
+                data-emoji=""  
+                data-font="Cookie" 
+                data-text="Buy me a coffee" 
+                data-outline-color="#000000" 
+                data-font-color="#000000" 
+                data-coffee-color="#ffffff">
+            </script>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
     <script>
-        const previewSection = document.getElementById("preview-section");
         const uploadInput = document.getElementById("upload");
         const qualityInput = document.getElementById("quality");
         const compressAndDownloadButton = document.getElementById("compressAndDownload");
         
         let imagesToCompress = [];
-
-        // Handle image uploads
+    
         uploadInput.addEventListener("change", handleImageUpload);
         compressAndDownloadButton.addEventListener("click", compressAndDownloadAll);
-
+    
         function handleImageUpload(event) {
-            previewSection.innerHTML = ""; // Clear previous previews
-            imagesToCompress = []; // Clear image array
-
+            imagesToCompress = [];
             Array.from(event.target.files).forEach(file => {
                 if (file && file.type.startsWith("image/")) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         const img = new Image();
                         img.onload = () => {
-                            imagesToCompress.push({
-                                originalImage: img,
-                                fileName: file.name,
-                                compressedImage: null
-                            });
-                            displayPreviewImage(img);
+                            imagesToCompress.push({ originalImage: img, fileName: file.name });
+                            if (imagesToCompress.length > 0) {
+                                compressAndDownloadButton.disabled = false;
+                            }
                         };
                         img.src = e.target.result;
                     };
@@ -140,38 +155,18 @@
                 }
             });
         }
-
-        // Display preview of uploaded images
-        function displayPreviewImage(img) {
-            const previewItem = document.createElement("div");
-            previewItem.classList.add("preview-item");
-            previewItem.appendChild(img);
-            previewSection.appendChild(previewItem);
-        }
-
-        // Compress all images and download as zip
-        function compressAndDownloadAll() {
+    
+        async function compressAndDownloadAll() {
             const quality = parseFloat(qualityInput.value);
             const zip = new JSZip();
             const imageFolder = zip.folder("compressed_images");
-
-            imagesToCompress.forEach((item, index) => {
-                const canvas = document.createElement("canvas");
-                canvas.width = item.originalImage.width;
-                canvas.height = item.originalImage.height;
-                const ctx = canvas.getContext("2d");
-
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(item.originalImage, 0, 0);
-
-                const format = item.originalImage.src.includes("image/png") ? "image/png" : "image/jpeg";
-                const compressedDataUrl = canvas.toDataURL(format, quality);
+    
+            for (let item of imagesToCompress) {
+                const compressedDataUrl = await compressImage(item.originalImage, quality, item.fileName);
                 const base64Data = compressedDataUrl.split(",")[1];
-
-                imageFolder.file(`compressed_${item.fileName}`, base64Data, { base64: true });
-            });
-
-            // Generate the zip and trigger download
+                imageFolder.file(`compressed_${item.fileName.replace(/\.[^/.]+$/, ".jpg")}`, base64Data, { base64: true });
+            }
+    
             zip.generateAsync({ type: "blob" }).then(content => {
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(content);
@@ -179,6 +174,28 @@
                 link.click();
             });
         }
+    
+        function compressImage(image, quality, fileName) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+    
+                canvas.width = image.width;
+                canvas.height = image.height;
+    
+                // If PNG, fill with white background to handle transparency before converting to JPEG
+                if (fileName.endsWith(".png")) {
+                    ctx.fillStyle = "#FFFFFF";  // White background for PNGs with transparency
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+    
+                // Draw the image and apply compression
+                ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                const compressedDataUrl = canvas.toDataURL("image/jpeg", quality); // Convert all to JPEG for compression
+                resolve(compressedDataUrl);
+            });
+        }
     </script>
+    
 </body>
 </html>
